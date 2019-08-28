@@ -1,5 +1,9 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-extra");
 const Selectors = require("./constants").SELECTORS;
+
+const pluginStealth = require("puppeteer-extra-plugin-stealth");
+
+puppeteer.use(pluginStealth());
 
 /**
  * Async Generator Function which asynchronously iterates over Reviews
