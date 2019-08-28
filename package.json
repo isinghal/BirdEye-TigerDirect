@@ -1,5 +1,5 @@
 {
-  "name": "Tigerdirect Reviews",
+  "name": "birdeye_tigerdirect",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,8 +9,8 @@
   "author": "Ishu Singhal",
   "license": "ISC",
   "dependencies": {
+    "chromedriver": "^76.0.1",
     "express": "^4.17.1",
-    "inquirer": "^6.5.0",
-    "puppeteer": "^1.19.0"
+    "selenium-webdriver": "^4.0.0-alpha.4"
   }
 }

@@ -1,88 +1,42 @@
-const puppeteer = require("puppeteer");
+require("chromedriver");
+const webdriver = require("selenium-webdriver");
 const Selectors = require("./constants").SELECTORS;
-
-/**
- * Async Generator Function which asynchronously iterates over Reviews
- * @returns  ReviewData JSON objects
- */
-async function reviewsGenerator(page) {}
-
+const By = webdriver.By;
 async function crawler(url) {
+  let browser;
   try {
     url = url.toLowerCase().trim();
-    const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
+    browser = await new webdriver.Builder().forBrowser("chrome").build();
+    await browser.get(url);
     let reviews = [];
-
-    await page.goto(url);
-
-    let reviewTab = await page.$(Selectors.reviewTabSelector);
+    let reviewTab = await browser.findElement(
+      By.css(Selectors.reviewTabSelector)
+    );
     if (reviewTab) {
       await reviewTab.click();
-      let rwDivs = await page.$$(Selectors.reviewDivs);
+      let rwDivs = await browser.findElements(By.css(Selectors.reviewDivs));
 
       while (rwDivs.length > 0) {
         const rwDiv = rwDivs.shift();
-        const rating = await rwDiv.$eval(
-          ".itemReview > dd:nth-of-type(1) > .itemRating",
-          ratingDiv => ratingDiv.innerText
-        );
-        const comment = await rwDiv.$eval(
-          "p",
-          commentDiv => commentDiv.innerText
-        );
-        const reviewer = await rwDiv.$eval(
-          ".reviewer > dd:nth-of-type(1)",
-          commentDiv => commentDiv.innerText
-        );
-        const date = await rwDiv.$eval(
-          ".reviewer > dd:nth-of-type(2)",
-          commentDiv => commentDiv.innerText
-        );
-
+        const rating = await (await rwDiv.findElement(
+          By.css(".itemReview > dd:nth-of-type(1) > .itemRating")
+        )).getText();
+        const comment = await (await rwDiv.findElement(By.css("p"))).getText();
+        const reviewer = await (await rwDiv.findElement(
+          By.css(".reviewer > dd:nth-of-type(1)")
+        )).getText();
+        const date = await (await rwDiv.findElement(
+          By.css(".reviewer > dd:nth-of-type(2)")
+        )).getText();
         reviews.push({ rating, comment, reviewer, date });
-
-        if (rwDivs.length == 0) {
-          const paginationBtns = await page.$$(Selectors.paginationBtns);
-          if (paginationBtns.length > 0) {
-            // Only if there are Previous/Next buttons in the DOM
-            let nextBtnExists = false;
-            for (const pageBtn of paginationBtns)
-              if (
-                (nextBtnExists = (await page.evaluate(
-                  el => el.innerText,
-                  pageBtn
-                )).includes("Next"))
-              )
-                break;
-
-            if (nextBtnExists) {
-              // Only if next button exists in DOM
-              const nextBtnSelector =
-                paginationBtns.length == 1
-                  ? Selectors.nextBtnSelector
-                  : Selectors.nextBtnSelector2;
-              // Click on next button
-              try {
-                await Promise.all([
-                  page.waitForNavigation({ waitUntil: "networkidle2" }),
-                  page.click(nextBtnSelector)
-                ]);
-                rwDivs = await page.$$(Selectors.reviewDivs);
-              } catch (err) {
-                throw new Error(
-                  "Error encountered while clicking Next button. Aborting!"
-                );
-              }
-            }
-          }
-        }
       }
     }
-
-    await browser.close();
+    await browser.quit();
     return reviews;
   } catch (error) {
+    if (browser) {
+      await browser.quit();
+    }
     throw error;
   }
 }
