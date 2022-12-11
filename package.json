@@ -9,7 +9,7 @@
   "author": "Ishu Singhal",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "inquirer": "^6.5.0",
     "puppeteer": "^1.19.0"
   }
